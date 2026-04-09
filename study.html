@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楚楚的自律小站 🌿</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:linear-gradient(160deg,#080f08 0%,#0d180d 50%,#091209 100%);font-family:'Georgia','Songti SC','SimSun',serif;color:#c8d8b8;overflow-x:hidden}
+  @keyframes float{from{transform:translateY(0);opacity:.08}to{transform:translateY(-18px);opacity:.35}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  #particles{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .particle{position:absolute;border-radius:50%;background:rgba(160,210,130,.6);animation:float ease-in-out infinite alternate}
+  .wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:36px 22px 80px}
+  .header{text-align:center;margin-bottom:28px}
+  .header h1{font-size:18px;font-weight:normal;letter-spacing:.14em;color:#a8c898}
+  .header .date{font-size:11px;color:#3a5a3a;margin-top:5px;letter-spacing:.06em}
+  .tabs{display:flex;margin-bottom:24px;background:#0a140a;border-radius:12px;padding:4px;border:1px solid #1a2d1a}
+  .tab{flex:1;padding:8px 0;border-radius:9px;border:none;cursor:pointer;font-size:12px;letter-spacing:.06em;transition:all .25s;background:transparent;color:#2a4a2a;font-family:inherit}
+  .tab.active{background:#1a4a1a;color:#7aba60}
+  .page{display:none;animation:fadeUp .4s ease forwards}
+  .page.active{display:block}
+  .card{background:rgba(8,18,8,.85);border:1px solid #1a3a1a;border-radius:16px;padding:18px 18px 16px;margin-bottom:14px}
+  .card-title{font-size:11px;color:#3a5a3a;letter-spacing:.1em;margin-bottom:16px}
+  input[type=text],input[type=time]{background:transparent;border:none;color:#c8d8b8;font-size:14px;font-family:inherit;outline:none;padding:0}
+  input::placeholder{color:#2a4a2a}
+  input[type=time]{width:100%;padding:12px 16px;border-radius:12px;border:1px solid #1e3a1e;background:#0a1a0a;font-size:16px;color-scheme:dark}
+  .btn{width:100%;padding:13px 0;border-radius:12px;border:1px solid #1e4a1e;background:#111d11;color:#7aba60;font-size:14px;cursor:pointer;letter-spacing:.08em;font-family:inherit;transition:all .3s}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.saved{background:#1a4a2e;color:#6bc98a}
+  ::-webkit-scrollbar{width:3px}
+  ::-webkit-scrollbar-thumb{background:#1a3a1a;border-radius:4px}
+</style>
+</head>
+<body>
+<div id="particles"></div>
+<div class="wrap">
+  <div class="header">
+    <div style="font-size:24px;margin-bottom:6px">🌿</div>
+    <h1>楚楚的自律小站</h1>
+    <div class="date" id="headerDate"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('tasks')">任务</button>
+    <button class="tab" onclick="switchTab('timer')">专注</button>
+    <button class="tab" onclick="switchTab('meals')">吃饭</button>
+    <button class="tab" onclick="switchTab('stats')">统计</button>
+  </div>
+
+  <!-- Tasks -->
+
+  <div id="page-tasks" class="page active">
+    <div class="card">
+      <div class="card-title">今日任务</div>
+      <div id="progressWrap" style="display:none;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#5a7a50;margin-bottom:8px;letter-spacing:.06em">
+          <span>今日进度</span><span id="progressText"></span>
+        </div>
+        <div style="height:4px;background:#1a2a1a;border-radius:2px;overflow:hidden">
+          <div id="progressFill" style="height:100%;background:linear-gradient(90deg,#4a8a40,#7aba60);border-radius:2px;transition:width .4s ease;width:0%"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input type="text" id="taskInput" placeholder="加一条任务……" onkeydown="if(event.key==='Enter')addTask()" style="flex:1;background:#0d1a0d;border:1px solid #1e3a1e;border-radius:10px;padding:10px 14px;color:#c8d8b8;font-size:14px;font-family:inherit">
+        <button onclick="addTask()" style="padding:10px 16px;border-radius:10px;border:1px solid #2a4a2a;background:#1a3a1a;color:#7aba60;font-size:18px;cursor:pointer;line-height:1">+</button>
+      </div>
+      <div id="taskList"></div>
+    </div>
+  </div>
+
+  <!-- Timer -->
+
+  <div id="page-timer" class="page">
+    <div class="card">
+      <div class="card-title">专注计时</div>
+      <div style="text-align:center">
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:32px">
+          <button class="mode-btn active" data-mode="focus" onclick="switchMode('focus')" style="padding:7px 20px;border-radius:50px;border:1px solid #7aba6088;background:#7aba6022;color:#7aba60;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s">专注</button>
+          <button class="mode-btn" data-mode="break" onclick="switchMode('break')" style="padding:7px 20px;border-radius:50px;border:1px solid #1a3a1a;background:transparent;color:#3a5a3a;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s">休息</button>
+        </div>
+        <div style="position:relative;width:180px;height:180px;margin:0 auto 32px">
+          <svg width="180" height="180" style="position:absolute;inset:0;transform:rotate(-90deg)">
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#1a2a1a" stroke-width="6"/>
+            <circle id="timerArc" cx="90" cy="90" r="70" fill="none" stroke="#7aba60" stroke-width="6" stroke-dasharray="439.82" stroke-dashoffset="439.82" stroke-linecap="round" style="transition:stroke-dashoffset .5s linear"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div id="timerDisplay" style="font-size:34px;color:#7aba60;font-variant-numeric:tabular-nums;letter-spacing:.02em">25:00</div>
+            <div id="timerStatus" style="font-size:11px;color:#3a5a3a;margin-top:4px;letter-spacing:.06em">准备好了吗</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:28px">
+          <button id="timerBtn" onclick="toggleTimer()" style="padding:12px 32px;border-radius:50px;border:1px solid #7aba6088;background:#7aba6022;color:#7aba60;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:.06em;transition:all .2s">▶ 开始</button>
+          <button onclick="resetTimer()" style="padding:12px 20px;border-radius:50px;border:1px solid #1a3a1a;background:transparent;color:#3a5a3a;font-size:14px;cursor:pointer;font-family:inherit">↺</button>
+        </div>
+        <div style="background:rgba(10,20,10,.8);border:1px solid #1a3a1a;border-radius:12px;padding:14px 20px;display:flex;justify-content:space-around">
+          <div style="text-align:center">
+            <div style="font-size:11px;color:#3a5a3a;margin-bottom:4px;letter-spacing:.06em">本次专注</div>
+            <div id="sessionTime" style="font-size:16px;color:#7aba60">0分钟</div>
+          </div>
+          <div style="width:1px;background:#1a3a1a"></div>
+          <div style="text-align:center">
+            <div style="font-size:11px;color:#3a5a3a;margin-bottom:4px;letter-spacing:.06em">今日累计</div>
+            <div id="totalTime" style="font-size:16px;color:#7aba60">0分钟</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meals -->
+
+  <div id="page-meals" class="page">
+    <div class="card">
+      <div class="card-title">吃饭打卡</div>
+      <div style="text-align:center;margin-bottom:20px">
+        <div id="mealIcon" style="font-size:28px;margin-bottom:4px">🍽️</div>
+        <div id="mealCount" style="font-size:12px;color:#5a7a50;letter-spacing:.06em">今天吃了 0/3 餐</div>
+      </div>
+      <div id="mealList"></div>
+      <div id="mealCongrats" style="display:none;text-align:center;margin-top:16px;padding:14px;background:rgba(10,30,10,.8);border:1px solid #2a5a2a;border-radius:12px;color:#7aba60;font-size:13px;letter-spacing:.06em">
+        🌳 今天三餐全勤，好棒的楚楚
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+
+  <div id="page-stats" class="page">
+    <div class="card">
+      <div class="card-title">最近 7 天</div>
+      <div id="statsList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='chuchú-study-v1';
+const MEALS_DEF=[{key:'breakfast',label:'早饭',emoji:'🌅',time:'07:00–09:00'},{key:'lunch',label:'午饭',emoji:'☀️',time:'11:30–13:30'},{key:'dinner',label:'晚饭',emoji:'🌙',time:'17:30–19:30'}];
+
+// Particles
+const pc=document.getElementById('particles');
+for(let i=0;i<14;i++){const p=document.createElement('div');p.className='particle';const sz=Math.random()*3+1,dl=Math.random()*8,dur=Math.random()*8+6;p.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation-duration:${dur}s;animation-delay:${dl}s`;pc.appendChild(p)}
+
+// Date header
+document.getElementById('headerDate').textContent=new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'});
+
+function getTodayKey(){return new Date().toISOString().slice(0,10)}
+function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch{return{}}}
+function save(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
+let allData=load();
+const today=getTodayKey();
+function getTodayData(){return allData[today]||{}}
+function updateTodayData(patch){allData[today]={...getTodayData(),...patch};save(allData)}
+
+// Tabs
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['tasks','timer','meals','stats'][i]===tab));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='tasks')renderTasks();
+  if(tab==='meals')renderMeals();
+  if(tab==='stats')renderStats();
+}
+
+// ── Tasks ──────────────────────────────────────────────────────────
+function renderTasks(){
+  const d=getTodayData();const tasks=d.tasks||[];
+  const done=tasks.filter(t=>t.done).length,total=tasks.length;
+  const pw=document.getElementById('progressWrap');
+  if(total>0){pw.style.display='block';document.getElementById('progressText').textContent=`${done}/${total}`;document.getElementById('progressFill').style.width=`${(done/total)*100}%`}else pw.style.display='none';
+  const list=document.getElementById('taskList');list.innerHTML='';
+  if(!tasks.length){list.innerHTML='<div style="text-align:center;color:#2a4a2a;font-size:13px;padding:32px 0">今天还没有任务<br><span style="font-size:11px;margin-top:6px;display:block">加一条，开始吧</span></div>';return}
+  tasks.forEach(t=>{
+    const el=document.createElement('div');
+    el.style.cssText=`display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:${t.done?'rgba(10,25,10,.6)':'rgba(13,26,13,.9)'};border:1px solid ${t.done?'#1a3a1a':'#2a4a2a'};margin-bottom:8px;transition:all .2s`;
+    el.innerHTML=`<div onclick="toggleTask(${t.id})" style="width:20px;height:20px;border-radius:6px;flex-shrink:0;border:1.5px solid ${t.done?'#4a8a40':'#2a4a2a'};background:${t.done?'#4a8a40':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center">${t.done?'<span style="color:#fff;font-size:11px">✓</span>':''}</div><span style="flex:1;font-size:14px;color:${t.done?'#3a5a3a':'#c8d8b8'};text-decoration:${t.done?'line-through':'none'}">${t.text.replace(/</g,'&lt;')}</span><button onclick="deleteTask(${t.id})" style="background:none;border:none;color:#2a4a2a;cursor:pointer;font-size:16px;padding:0;line-height:1">×</button>`;
+    list.appendChild(el);
+  });
+}
+function addTask(){
+  const inp=document.getElementById('taskInput');if(!inp.value.trim())return;
+  const d=getTodayData();const tasks=[...(d.tasks||[]),{id:Date.now(),text:inp.value.trim(),done:false}];
+  updateTodayData({tasks});inp.value='';renderTasks();
+}
+function toggleTask(id){
+  const d=getTodayData();const tasks=(d.tasks||[]).map(t=>t.id===id?{...t,done:!t.done}:t);
+  updateTodayData({tasks});renderTasks();
+}
+function deleteTask(id){
+  const d=getTodayData();updateTodayData({tasks:(d.tasks||[]).filter(t=>t.id!==id)});renderTasks();
+}
+renderTasks();
+
+// ── Timer ──────────────────────────────────────────────────────────
+let timerMode='focus',timerRunning=false,timerSecs=25*60,timerInterval=null,sessionSecs=0;
+const CIRC=2*Math.PI*70;
+const MODES={focus:{duration:25*60,color:'#7aba60',label:'专注'},break:{duration:5*60,color:'#60aaaa',label:'休息'}};
+
+function fmtTime(s){const m=Math.floor(s/60),sec=s%60;return`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`}
+function fmtHours(s){if(s<60)return`${s}秒`;if(s<3600)return`${Math.floor(s/60)}分钟`;return`${(s/3600).toFixed(1)}小时`}
+
+function updateTimerUI(){
+  const cur=MODES[timerMode];
+  const progress=(cur.duration-timerSecs)/cur.duration;
+  document.getElementById('timerDisplay').textContent=fmtTime(timerSecs);
+  document.getElementById('timerDisplay').style.color=cur.color;
+  document.getElementById('timerArc').style.stroke=cur.color;
+  document.getElementById('timerArc').style.strokeDashoffset=CIRC*(1-progress);
+  document.getElementById('timerStatus').textContent=timerRunning?(cur.label+'中'):'准备好了吗';
+  document.getElementById('timerBtn').textContent=timerRunning?'⏸ 暂停':'▶ 开始';
+  document.getElementById('timerBtn').style.borderColor=cur.color+'88';
+  document.getElementById('timerBtn').style.background=cur.color+'22';
+  document.getElementById('timerBtn').style.color=cur.color;
+  document.getElementById('sessionTime').textContent=fmtHours(sessionSecs);
+  document.getElementById('totalTime').textContent=fmtHours(getTodayData().todayStudySecs||0);
+}
+function switchMode(m){
+  clearInterval(timerInterval);timerRunning=false;timerMode=m;timerSecs=MODES[m].duration;sessionSecs=0;
+  document.querySelectorAll('.mode-btn').forEach(b=>{
+    const isCur=b.dataset.mode===m;const c=MODES[m].color;
+    b.style.borderColor=isCur?c+'88':'#1a3a1a';b.style.background=isCur?c+'22':'transparent';b.style.color=isCur?c:'#3a5a3a';
+  });
+  updateTimerUI();
+}
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInterval);timerRunning=false;
+    const total=(getTodayData().todayStudySecs||0)+sessionSecs;
+    updateTodayData({todayStudySecs:total});sessionSecs=0;
+  }else{
+    timerRunning=true;
+    timerInterval=setInterval(()=>{
+      timerSecs--;
+      if(timerMode==='focus')sessionSecs++;
+      if(timerSecs<=0){
+        clearInterval(timerInterval);timerRunning=false;
+        const total=(getTodayData().todayStudySecs||0)+sessionSecs;
+        updateTodayData({todayStudySecs:total});sessionSecs=0;
+        timerSecs=MODES[timerMode].duration;
+      }
+      updateTimerUI();
+    },1000);
+  }
+  updateTimerUI();
+}
+function resetTimer(){clearInterval(timerInterval);timerRunning=false;timerSecs=MODES[timerMode].duration;sessionSecs=0;updateTimerUI()}
+updateTimerUI();
+
+// ── Meals ──────────────────────────────────────────────────────────
+function renderMeals(){
+  const d=getTodayData();const meals=d.meals||{};
+  const count=MEALS_DEF.filter(m=>meals[m.key]).length;
+  const icons=['🍽️','🌱','🌿','🌳'];
+  document.getElementById('mealIcon').textContent=icons[count];
+  document.getElementById('mealCount').textContent=`今天吃了 ${count}/3 餐`;
+  document.getElementById('mealCongrats').style.display=count===3?'block':'none';
+  const list=document.getElementById('mealList');list.innerHTML='';
+  MEALS_DEF.forEach(meal=>{
+    const rec=meals[meal.key];
+    const el=document.createElement('div');
+    el.style.cssText=`border-radius:14px;overflow:hidden;border:1px solid ${rec?'#2a5a2a':'#1a3a1a'};background:${rec?'rgba(10,25,10,.8)':'rgba(10,18,10,.6)'};margin-bottom:12px;transition:all .3s`;
+    let inner=`<div style="padding:14px 16px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">${meal.emoji}</span><div style="flex:1"><div style="font-size:14px;color:${rec?'#c8d8b8':'#4a6a4a'}">${meal.label}</div><div style="font-size:11px;color:#3a5a3a;margin-top:2px">${rec?`✓ ${rec.time} 打卡`:meal.time}</div></div>`;
+    if(rec){
+      inner+=`<button onclick="removeMeal('${meal.key}')" style="background:none;border:1px solid #2a4a2a;border-radius:8px;color:#3a5a3a;font-size:11px;cursor:pointer;padding:4px 10px;font-family:inherit">撤销</button>`;
+    }else{
+      inner+=`<label style="background:#1a3a1a;border:1px solid #2a5a2a;border-radius:8px;color:#7aba60;font-size:11px;cursor:pointer;padding:6px 12px;font-family:inherit">📷 打卡<input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleMealPhoto('${meal.key}',this)"></label>`;
+    }
+    inner+='</div>';
+    if(rec?.photo)inner+=`<div style="padding:0 16px 14px"><img src="${rec.photo}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;display:block"></div>`;
+    el.innerHTML=inner+'</div>';
+    list.appendChild(el);
+  });
+}
+function handleMealPhoto(mealKey,input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const d=getTodayData();const meals={...(d.meals||{}),[mealKey]:{photo:e.target.result,time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}};
+    updateTodayData({meals});renderMeals();
+  };
+  reader.readAsDataURL(file);
+}
+function removeMeal(key){
+  const d=getTodayData();const meals={...(d.meals||{})};delete meals[key];updateTodayData({meals});renderMeals();
+}
+renderMeals();
+
+// ── Stats ──────────────────────────────────────────────────────────
+function renderStats(){
+  allData=load();
+  const list=document.getElementById('statsList');list.innerHTML='';
+  const days=Object.entries(allData).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,7);
+  if(!days.length){list.innerHTML='<div style="text-align:center;color:#2a4a2a;font-size:13px;padding:40px 0">还没有记录<br><span style="font-size:11px;margin-top:6px;display:block">开始学习和打卡吧</span></div>';return}
+  days.forEach(([date,d])=>{
+    const tasks=d.tasks||[];const done=tasks.filter(t=>t.done).length,total=tasks.length;
+    const study=d.todayStudySecs||0;const meals=Object.keys(d.meals||{}).length;
+    const label=new Date(date+'T00:00:00').toLocaleDateString('zh-CN',{month:'short',day:'numeric',weekday:'short'});
+    const el=document.createElement('div');
+    el.style.cssText='background:rgba(10,18,10,.8);border:1px solid #1a3a1a;border-radius:12px;padding:14px 16px;margin-bottom:10px';
+    el.innerHTML=`<div style="font-size:11px;color:#4a6a4a;margin-bottom:10px;letter-spacing:.06em">${label}</div><div style="display:flex;gap:8px;flex-wrap:wrap">${chip('✓',`任务 ${done}/${total}`,'#7aba60',total>0&&done===total)}${chip('⏱',study>0?fmtHours(study):'未学习','#60aaaa',study>0)}${chip('🍽',`${meals}/3 餐`,'#aa8a60',meals===3)}</div>`;
+    list.appendChild(el);
+  });
+}
+function chip(icon,label,color,active){return`<div style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;border:1px solid ${active?color+'66':'#1a3a1a'};background:${active?color+'18':'transparent'};font-size:12px;color:${active?color:'#3a5a3a'};transition:all .2s"><span>${icon}</span><span>${label}</span></div>`}
+</script>
+
+</body>
+</html>
