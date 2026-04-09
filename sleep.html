@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楚楚的睡前小屋 🌙</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:linear-gradient(160deg,#0a0e1a 0%,#111827 50%,#0d1420 100%);font-family:'Georgia','Songti SC','SimSun',serif;color:#e8e0d4;overflow-x:hidden}
+  @keyframes twinkle{from{opacity:.15;transform:scale(.8)}to{opacity:.8;transform:scale(1.2)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  #stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle ease-in-out infinite alternate}
+  .wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:36px 22px 80px}
+  .header{text-align:center;margin-bottom:30px}
+  .header .moon{font-size:26px;margin-bottom:6px}
+  .header h1{font-size:19px;font-weight:normal;letter-spacing:.14em;color:#c9bfa8}
+  .tabs{display:flex;margin-bottom:24px;background:#0d1520;border-radius:12px;padding:4px;border:1px solid #1e2d3d}
+  .tab{flex:1;padding:8px 0;border-radius:9px;border:none;cursor:pointer;font-size:12px;letter-spacing:.06em;transition:all .25s;background:transparent;color:#3a5060;font-family:inherit}
+  .tab.active{background:#1e3a5f;color:#a8c4e0}
+  .page{display:none;animation:fadeUp .4s ease forwards}
+  .page.active{display:block}
+  .section{background:rgba(10,18,28,.85);border:1px solid #1a2d3d;border-radius:16px;padding:16px 18px;margin-bottom:14px}
+  .section-title{font-size:11px;color:#4a6080;letter-spacing:.1em;margin-bottom:14px}
+  textarea,input[type=text],input[type=time]{width:100%;background:transparent;border:none;color:#c9bfa8;font-size:14px;font-family:inherit;outline:none;resize:none;padding:0}
+  textarea{line-height:1.9;min-height:130px}
+  textarea::placeholder,input::placeholder{color:#2a3a4a}
+  input[type=time]{padding:12px 16px;border-radius:12px;border:1px solid #1e2d3d;background:#0d1520;font-size:16px;color-scheme:dark}
+  .moods{display:flex;gap:8px;flex-wrap:wrap}
+  .mood-btn{padding:7px 13px;border-radius:50px;border:1px solid #1a2a3a;background:transparent;color:#c9bfa8;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}
+  .mood-btn.selected{border-color:#3a6a8f;background:#1a3a5a}
+  .btn{width:100%;padding:13px 0;border-radius:12px;border:1px solid #1e3a5f;background:#111d2e;color:#7ba7cc;font-size:14px;cursor:pointer;letter-spacing:.08em;font-family:inherit;transition:all .3s}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.saved{background:#1a4a2e;border-color:#2a6a3e;color:#6bc98a}
+  .sleep-result{text-align:center;padding:14px;border-radius:12px;background:#0a1a2a;border:1px solid #1a2d3d;margin-bottom:16px}
+  .breathe-wrap{text-align:center;padding-top:8px}
+  .breathe-sub{color:#4a6080;font-size:12px;letter-spacing:.08em;margin-bottom:32px}
+  .breathe-ring-wrap{position:relative;width:160px;height:160px;margin:0 auto 32px}
+  .ring-outer,.ring-inner{position:absolute;border-radius:50%;transition:transform .9s linear}
+  .ring-outer{inset:0;border:1px solid #1e3a5f;background:radial-gradient(circle,#1a3a5f44 0%,transparent 70%)}
+  .ring-inner{inset:16px;border:1px solid #2a5a8f}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-count{font-size:28px;color:#7ba7cc}
+  .ring-phase{font-size:12px;color:#4a6080;margin-top:4px;letter-spacing:.06em}
+  .btn-breathe{padding:12px 36px;border-radius:50px;border:1px solid #1e3a5f;background:#111d2e;color:#7ba7cc;font-size:14px;cursor:pointer;letter-spacing:.08em;font-family:inherit;transition:all .2s}
+  .btn-breathe.active{background:#1a1520;border-color:#3a2a5a;color:#8a6aaa}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .cal-nav span{color:#c9bfa8;font-size:14px;letter-spacing:.1em}
+  .cal-nav button{background:none;border:none;color:#4a6080;cursor:pointer;font-size:20px;padding:0 8px}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+  .cal-wday{text-align:center;font-size:10px;color:#2a3a4a;padding-bottom:6px}
+  .cal-day{text-align:center;padding:7px 0;border-radius:8px;font-size:13px;color:#2a3a4a;border:1px solid transparent}
+  .cal-day.has-entry{color:#c9bfa8;cursor:pointer}
+  .cal-day.is-today{color:#7ba7cc;background:#0d1a2a;border-color:#1e3a5f}
+  .cal-day.selected{background:#1e3a5f}
+  .cal-dot{width:4px;height:4px;border-radius:50%;background:#5a8aaa;margin:2px auto 0}
+  .cal-detail{background:#0a1520;border:1px solid #1a2d3d;border-radius:14px;padding:16px 18px;animation:fadeUp .3s ease forwards}
+  .auto-save{text-align:center;margin-top:20px;font-size:11px;color:#2a3a4a;letter-spacing:.06em}
+  ::-webkit-scrollbar{width:3px}
+  ::-webkit-scrollbar-thumb{background:#1e2d3d;border-radius:4px}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div class="wrap">
+  <div class="header">
+    <div class="moon">🌙</div>
+    <h1>楚楚的睡前小屋</h1>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('tonight')">今晚</button>
+    <button class="tab" onclick="switchTab('breathe')">呼吸</button>
+    <button class="tab" onclick="switchTab('sleep')">睡眠</button>
+    <button class="tab" onclick="switchTab('calendar')">日历</button>
+  </div>
+
+  <!-- Tonight -->
+
+  <div id="page-tonight" class="page active">
+    <div class="section">
+      <div class="section-title">今晚心情</div>
+      <div class="moods" id="moods"></div>
+    </div>
+    <div class="section">
+      <div class="section-title">写点什么</div>
+      <textarea id="journal" placeholder="今天的碎碎念……&#10;脑子里转的是什么……&#10;或者就说一句晚安也好。" oninput="saveTodayField('journal',this.value)"></textarea>
+    </div>
+    <div class="section">
+      <div class="section-title">🌱 今天一件小事</div>
+      <input type="text" id="goodThing" placeholder="今天有什么还不错的，哪怕很小……" oninput="saveTodayField('goodThing',this.value)">
+    </div>
+    <div class="section">
+      <div class="section-title">📝 明天只做一件事</div>
+      <input type="text" id="tomorrow" placeholder="写下来，然后就放下了……" oninput="saveTodayField('tomorrow',this.value)">
+    </div>
+    <div class="auto-save">自动保存 · 晚安 🌙</div>
+  </div>
+
+  <!-- Breathe -->
+
+  <div id="page-breathe" class="page">
+    <div class="section">
+      <div class="section-title">呼吸引导</div>
+      <div class="breathe-wrap">
+        <p class="breathe-sub">4 秒吸气 · 7 秒屏住 · 8 秒呼气</p>
+        <div class="breathe-ring-wrap">
+          <div class="ring-outer" id="ringOuter"></div>
+          <div class="ring-inner" id="ringInner"></div>
+          <div class="ring-center">
+            <div class="ring-count" id="ringCount">🌙</div>
+            <div class="ring-phase" id="ringPhase"></div>
+          </div>
+        </div>
+        <div id="breatheCycles" style="color:#4a7060;font-size:12px;margin-bottom:16px;display:none"></div>
+        <button class="btn-breathe" id="breatheBtn" onclick="toggleBreathe()">开始呼吸</button>
+        <p style="color:#3a4a5a;font-size:11px;margin-top:24px">做 3–4 轮，感觉困了就停</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sleep -->
+
+  <div id="page-sleep" class="page">
+    <div class="section">
+      <div class="section-title">睡眠打卡</div>
+      <p style="color:#4a6080;font-size:12px;letter-spacing:.06em;margin-bottom:20px;text-align:center">记录今天的睡眠</p>
+      <div style="margin-bottom:16px">
+        <div class="section-title">昨晚几点睡</div>
+        <input type="time" id="bedtime" onchange="updateSleepCalc()">
+      </div>
+      <div style="margin-bottom:16px">
+        <div class="section-title">今天几点起</div>
+        <input type="time" id="waketime" onchange="updateSleepCalc()">
+      </div>
+      <div class="sleep-result" id="sleepResult" style="display:none">
+        <span id="sleepHours" style="font-size:32px"></span>
+        <span style="font-size:14px;color:#4a6080;margin-left:6px">小时</span>
+        <div id="sleepLabel" style="font-size:11px;color:#3a4a5a;margin-top:4px"></div>
+      </div>
+      <button class="btn" id="sleepBtn" onclick="saveSleep()" disabled>记录睡眠</button>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+
+  <div id="page-calendar" class="page">
+    <div class="section">
+      <div class="section-title">我的记录</div>
+      <div class="cal-nav">
+        <button onclick="calPrev()">‹</button>
+        <span id="calTitle"></span>
+        <button onclick="calNext()">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div id="calDetail"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='chuchú-sleep-v2';
+const MOODS=[{emoji:'🌙',label:'平静'},{emoji:'☁️',label:'有点累'},{emoji:'🌧',label:'有点难'},{emoji:'⭐',label:'还不错'},{emoji:'🌸',label:'很开心'}];
+const WEEKDAYS=['日','一','二','三','四','五','六'];
+
+// Stars
+const starsEl=document.getElementById('stars');
+for(let i=0;i<40;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*1.8+0.4,dl=Math.random()*5;s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*70}%;width:${sz}px;height:${sz}px;animation-duration:${2.5+dl}s;animation-delay:${dl}s`;starsEl.appendChild(s)}
+
+function getTodayKey(){return new Date().toISOString().slice(0,10)}
+function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch{return{}}}
+function save(e){localStorage.setItem(STORAGE_KEY,JSON.stringify(e))}
+let entries=load();
+const today=getTodayKey();
+
+// Tabs
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['tonight','breathe','sleep','calendar'][i]===tab));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='calendar')renderCalendar();
+}
+
+// Tonight
+function renderMoods(){
+  const wrap=document.getElementById('moods');wrap.innerHTML='';
+  const cur=(entries[today]||{}).mood||'';
+  MOODS.forEach(m=>{
+    const btn=document.createElement('button');btn.className='mood-btn'+(cur===m.label?' selected':'');
+    btn.textContent=m.emoji+' '+m.label;
+    btn.onclick=()=>{saveTodayField('mood',cur===m.label?'':m.label);renderMoods()};
+    wrap.appendChild(btn);
+  });
+}
+function saveTodayField(key,value){
+  if(!entries[today])entries[today]={};
+  entries[today][key]=value;save(entries);
+}
+function initTonight(){
+  const d=entries[today]||{};
+  document.getElementById('journal').value=d.journal||'';
+  document.getElementById('goodThing').value=d.goodThing||'';
+  document.getElementById('tomorrow').value=d.tomorrow||'';
+  renderMoods();
+}
+
+// Breathe
+let breatheTimer=null,breathePhase='idle',breatheCount=0,breatheCycles=0;
+const PHASES=[{key:'inhale',label:'吸气',duration:4,next:'hold'},{key:'hold',label:'屏住',duration:7,next:'exhale'},{key:'exhale',label:'呼气',duration:8,next:'inhale'}];
+function setScale(s){document.getElementById('ringOuter').style.transform=`scale(${s})`;document.getElementById('ringInner').style.transform=`scale(${s})`}
+function toggleBreathe(){
+  if(breathePhase==='idle'){
+    breathePhase='inhale';breatheCount=4;breatheCycles=1;
+    document.getElementById('breatheBtn').textContent='停止';document.getElementById('breatheBtn').classList.add('active');
+    document.getElementById('breatheCycles').style.display='block';runBreathe();
+  }else{
+    clearTimeout(breatheTimer);breathePhase='idle';breatheCount=0;breatheCycles=0;
+    document.getElementById('breatheBtn').textContent='开始呼吸';document.getElementById('breatheBtn').classList.remove('active');
+    document.getElementById('breatheCycles').style.display='none';
+    document.getElementById('ringCount').textContent='🌙';document.getElementById('ringPhase').textContent='';setScale(0.7);
+  }
+}
+function runBreathe(){
+  if(breathePhase==='idle')return;
+  const cur=PHASES.find(p=>p.key===breathePhase);
+  document.getElementById('ringPhase').textContent=cur.label;
+  document.getElementById('breatheCycles').textContent=`已完成 ${Math.max(0,breatheCycles-1)} 轮`;
+  let c=cur.duration;document.getElementById('ringCount').textContent=c;
+  const target=breathePhase==='exhale'?0.7:1;
+  document.getElementById('ringOuter').style.transition=`transform ${cur.duration}s linear`;
+  document.getElementById('ringInner').style.transition=`transform ${cur.duration}s linear`;
+  setScale(target);
+  const tick=setInterval(()=>{
+    c--;document.getElementById('ringCount').textContent=c;
+    if(c<=0){clearInterval(tick);if(cur.key==='exhale')breatheCycles++;breathePhase=cur.next;runBreathe()}
+  },1000);
+}
+
+// Sleep
+function initSleep(){const d=entries[today]||{};if(d.bedtime)document.getElementById('bedtime').value=d.bedtime;if(d.waketime)document.getElementById('waketime').value=d.waketime;updateSleepCalc()}
+function updateSleepCalc(){
+  const bed=document.getElementById('bedtime').value,wake=document.getElementById('waketime').value;
+  const btn=document.getElementById('sleepBtn');
+  if(!bed||!wake){btn.disabled=true;document.getElementById('sleepResult').style.display='none';return}
+  btn.disabled=false;
+  const[bh,bm]=bed.split(':').map(Number),[wh,wm]=wake.split(':').map(Number);
+  let mins=(wh*60+wm)-(bh*60+bm);if(mins<0)mins+=1440;
+  const hrs=(mins/60).toFixed(1);
+  const el=document.getElementById('sleepHours');el.textContent=hrs;
+  el.style.color=hrs>=7?'#6bc98a':hrs>=6?'#c9a86b':'#c96b6b';
+  document.getElementById('sleepLabel').textContent=hrs>=7?'睡得不错 🌙':hrs>=6?'稍微少了点':'有点不够哦宝宝';
+  document.getElementById('sleepResult').style.display='block';
+}
+function saveSleep(){
+  const bed=document.getElementById('bedtime').value,wake=document.getElementById('waketime').value;
+  saveTodayField('bedtime',bed);saveTodayField('waketime',wake);
+  const btn=document.getElementById('sleepBtn');btn.textContent='✓ 已记录';btn.classList.add('saved');
+  setTimeout(()=>{btn.textContent='记录睡眠';btn.classList.remove('saved')},2000);
+}
+
+// Calendar
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calSelected=null;
+function calPrev(){if(calMonth===0){calYear--;calMonth=11}else calMonth--;renderCalendar()}
+function calNext(){if(calMonth===11){calYear++;calMonth=0}else calMonth++;renderCalendar()}
+function dayKey(d){return`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+function fmtDate(str){return new Date(str+'T00:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'})}
+function renderCalendar(){
+  entries=load();
+  document.getElementById('calTitle').textContent=`${calYear}年${calMonth+1}月`;
+  const grid=document.getElementById('calGrid');grid.innerHTML='';
+  WEEKDAYS.forEach(w=>{const el=document.createElement('div');el.className='cal-wday';el.textContent=w;grid.appendChild(el)});
+  const first=new Date(calYear,calMonth,1).getDay(),last=new Date(calYear,calMonth+1,0).getDate();
+  for(let i=0;i<first;i++){const el=document.createElement('div');el.className='cal-day';grid.appendChild(el)}
+  for(let d=1;d<=last;d++){
+    const key=dayKey(d),has=!!entries[key],isToday=key===getTodayKey(),isSel=d===calSelected;
+    const el=document.createElement('div');
+    el.className='cal-day'+(has?' has-entry':'')+(isToday?' is-today':'')+(isSel?' selected':'');
+    el.textContent=d;
+    if(has){const dot=document.createElement('div');dot.className='cal-dot';el.appendChild(dot);el.onclick=()=>{calSelected=isSel?null:d;renderCalendar()}}
+    grid.appendChild(el);
+  }
+  const detail=document.getElementById('calDetail');
+  if(calSelected&&entries[dayKey(calSelected)]){
+    const e=entries[dayKey(calSelected)];
+    let html=`<div class="cal-detail"><div style="font-size:11px;color:#4a6080;margin-bottom:10px">${fmtDate(dayKey(calSelected))}</div>`;
+    if(e.mood){const m=MOODS.find(x=>x.label===e.mood);if(m)html+=`<div style="font-size:14px;margin-bottom:8px">${m.emoji} <span style="font-size:12px;color:#6a8070">${e.mood}</span></div>`}
+    if(e.bedtime&&e.waketime){const[bh,bm]=e.bedtime.split(':').map(Number),[wh,wm]=e.waketime.split(':').map(Number);let mins=(wh*60+wm)-(bh*60+bm);if(mins<0)mins+=1440;html+=`<div style="font-size:12px;color:#5a7080;margin-bottom:8px">🌙 ${e.bedtime} 睡 · ${e.waketime} 起 · ${(mins/60).toFixed(1)}h</div>`}
+    if(e.journal)html+=`<div style="font-size:13px;color:#8a9a8a;line-height:1.8;white-space:pre-wrap;max-height:80px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,black 50%,transparent 100%)">${e.journal.replace(/</g,'&lt;')}</div>`;
+    if(e.goodThing)html+=`<div style="font-size:12px;color:#6a8070;margin-top:8px">🌱 ${e.goodThing.replace(/</g,'&lt;')}</div>`;
+    if(e.tomorrow)html+=`<div style="font-size:12px;color:#5a6880;margin-top:6px">📝 ${e.tomorrow.replace(/</g,'&lt;')}</div>`;
+    detail.innerHTML=html+'</div>';
+  }else{detail.innerHTML=''}
+}
+
+initTonight();initSleep();setScale(0.7);
+</script>
+
+</body>
+</html>
