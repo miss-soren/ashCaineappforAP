@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楚楚的小天地</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:linear-gradient(135deg,#0a0e1a 0%,#0d180d 100%);font-family:'Georgia','Songti SC',serif;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .wrap{text-align:center;animation:fadeUp .6s ease forwards}
+  h1{font-size:18px;font-weight:normal;color:#a8b8a8;letter-spacing:.14em;margin-bottom:6px}
+  p{font-size:12px;color:#3a5a3a;letter-spacing:.06em;margin-bottom:48px}
+  .cards{display:flex;flex-direction:column;gap:16px;max-width:320px;margin:0 auto}
+  a{display:block;padding:24px;border-radius:16px;text-decoration:none;transition:all .2s}
+  .sleep{background:rgba(10,18,28,.8);border:1px solid #1e2d3d}
+  .sleep:hover{border-color:#3a5a7f;background:rgba(15,25,40,.9)}
+  .study{background:rgba(8,18,8,.8);border:1px solid #1a3a1a}
+  .study:hover{border-color:#2a5a2a;background:rgba(12,25,12,.9)}
+  .icon{font-size:32px;margin-bottom:10px}
+  .name{font-size:16px;letter-spacing:.1em;margin-bottom:4px}
+  .sleep .name{color:#c9bfa8}
+  .study .name{color:#a8c898}
+  .desc{font-size:11px;letter-spacing:.06em}
+  .sleep .desc{color:#4a6080}
+  .study .desc{color:#3a5a3a}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="font-size:22px;margin-bottom:12px">✨</div>
+  <h1>楚楚的小天地</h1>
+  <p>选一个进去</p>
+  <div class="cards">
+    <a href="sleep.html" class="sleep">
+      <div class="icon">🌙</div>
+      <div class="name">睡前小屋</div>
+      <div class="desc">写日记 · 呼吸引导 · 睡眠打卡</div>
+    </a>
+    <a href="study.html" class="study">
+      <div class="icon">🌿</div>
+      <div class="name">自律小站</div>
+      <div class="desc">任务清单 · 专注计时 · 吃饭打卡</div>
+    </a>
+  </div>
+</div>
+</body>
+</html>
