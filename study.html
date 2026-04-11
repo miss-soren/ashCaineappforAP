@@ -276,7 +276,7 @@ function renderMeals(){
     if(rec){
       inner+=`<button onclick="removeMeal('${meal.key}')" style="background:none;border:1px solid #2a4a2a;border-radius:8px;color:#3a5a3a;font-size:11px;cursor:pointer;padding:4px 10px;font-family:inherit">撤销</button>`;
     }else{
-      inner+=`<label style="background:#1a3a1a;border:1px solid #2a5a2a;border-radius:8px;color:#7aba60;font-size:11px;cursor:pointer;padding:6px 12px;font-family:inherit">📷 打卡<input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleMealPhoto('${meal.key}',this)"></label>`;
+      inner+=`<label style="background:#1a3a1a;border:1px solid #2a5a2a;border-radius:8px;color:#7aba60;font-size:11px;cursor:pointer;padding:6px 12px;font-family:inherit">📷 打卡<input type="file" accept="image/*" capture="environment" style="display:none" data-meal="${meal.key}"></label>`;
     }
     inner+='</div>';
     if(rec?.photo)inner+=`<div style="padding:0 16px 14px"><img src="${rec.photo}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;display:block"></div>`;
@@ -327,6 +327,14 @@ function handleMealPhoto(mealKey, input) {
     renderMeals();
   });
 }
+
+// 用事件委托绑定，避免移动端 onchange 不触发
+document.getElementById('mealList').addEventListener('change', function(e) {
+  const input = e.target;
+  if (input.type === 'file' && input.dataset.meal) {
+    handleMealPhoto(input.dataset.meal, input);
+  }
+});
 
 function removeMeal(key){
   const d=getTodayData();const meals={...(d.meals||{})};delete meals[key];updateTodayData({meals});renderMeals();
