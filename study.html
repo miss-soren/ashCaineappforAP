@@ -147,7 +147,19 @@ document.getElementById('headerDate').textContent=new Date().toLocaleDateString(
 
 function getTodayKey(){return new Date().toISOString().slice(0,10)}
 function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch{return{}}}
-function save(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
+function save(d){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
+  }catch(e){
+    // localStorage quota exceeded — strip oldest photos and retry
+    const keys=Object.keys(d).sort();
+    for(let i=0;i<keys.length-1;i++){
+      const day=d[keys[i]];
+      if(day.meals){Object.keys(day.meals).forEach(k=>{if(day.meals[k]?.photo)delete day.meals[k].photo});}
+    }
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e2){console.warn('localStorage full even after cleanup');}
+  }
+}
 let allData=load();
 const today=getTodayKey();
 function getTodayData(){return allData[today]||{}}
@@ -272,15 +284,50 @@ function renderMeals(){
     list.appendChild(el);
   });
 }
-function handleMealPhoto(mealKey,input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const d=getTodayData();const meals={...(d.meals||{}),[mealKey]:{photo:e.target.result,time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}};
-    updateTodayData({meals});renderMeals();
+
+// ── 修复：压缩图片再存，避免 localStorage 爆掉 ──
+function compressImage(file, maxWidth, quality, callback) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
+
+function handleMealPhoto(mealKey, input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // 显示上传中状态
+  const label = input.parentElement;
+  const origText = label.innerHTML;
+  label.style.opacity = '0.5';
+  label.querySelector('input') && (label.style.pointerEvents = 'none');
+
+  compressImage(file, 800, 0.72, function(dataUrl) {
+    const d = getTodayData();
+    const meals = {
+      ...(d.meals || {}),
+      [mealKey]: {
+        photo: dataUrl,
+        time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'})
+      }
+    };
+    updateTodayData({meals});
+    renderMeals();
+  });
+}
+
 function removeMeal(key){
   const d=getTodayData();const meals={...(d.meals||{})};delete meals[key];updateTodayData({meals});renderMeals();
 }
